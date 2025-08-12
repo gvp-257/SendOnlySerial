@@ -1,4 +1,4 @@
-#dtos.h
+# dtos.h
 
 The ""Debug TO Serial" library, or the "De-featured Transmit-Only Serial" library.
 
@@ -51,33 +51,33 @@ You might like to define shorthand macros to save on typing and clutter in your 
 
 
 
-##Motivation
+## Motivation
 
 Arduino's built-in `Serial` object uses 175 bytes of precious SRAM on the ATmega328P as soon as you do `Serial.begin(BAUDRATE)`. This on top of the strings that you want to print to the serial monitor.
 
 `dtos` uses none for itself, unless you want to print floating-point numbers as text to the serial port.  `dtos` uses about 1200 bytes of flash in simple cases.
 
 
-###Note on floating-point
+### Note on floating-point
 
 If you print floating-point numbers in readable format, `dtos`  uses an extra 2kb-ish of flash memory and 28 bytes of RAM, in the AVR-libC standard library function `dtostrf()` for formatting floating-point numbers.  Try to avoid doing that.
 
 
 
-##Limitations
+## Limitations
 
 Besides those listed above? :-)
 
 Because Arduino claims the "USART data register empty" interrupt for the Serial object, all `print` and `write` functions are blocking. They will return to your code when the last byte has been handed off to the ATmega's hardware for transmission. `flush()` waits for that last byte to be transmitted.
 
 
-##TODO
+## TODO
 
 as at 2025-08-08  GvP.
 
-###Maybe
+### Maybe
 
-Adapt to support the ATtiny44/84, ATtiny85, ATmega2560, Atmega1284P microcontrollers.
+Adapt to support the ATtiny44/84, ATtiny85, ATmega2560, ATmega1284P microcontrollers.
 
 Document functions more thoroughly.
 
@@ -90,7 +90,7 @@ Change `begin()` to match Arduino's `Serial.begin(baudrate)`, and remove the req
 More convenience macros for printing stuff to the serial monitor.
 
 
-###Unlikely
+### Unlikely
 
 Support other parities, stop bits, and error checking.
 
