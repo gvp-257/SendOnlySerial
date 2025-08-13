@@ -84,7 +84,7 @@ DebugSerial.print(x, HEX); \
 DebugSerial.println()
 #endif
 
-// printVar works for floatiing-points format as well as integers.
+// printVar works for floating-points format as well as integers.
 // Just with 10 and 16 decimals. So, printFloatVar:
 
 #ifndef printFloatVar
