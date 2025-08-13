@@ -3,7 +3,6 @@
 The ""Debug TO Serial" library, or the "De-featured Transmit-Only Serial" library.
 
 
-    #define   BAUD    100000  // baud rate for hardware serial transmission
     #include "dtos.h"
 
 
@@ -13,7 +12,7 @@ data to the Arduino IDE's Serial Monitor.
 
 For Arduino Uno, Nano, Pro Mini, Duemilanove and "breadboard Arduinos" using the ATmega168/328P only.
 
-Limited to 8N1 data frames. (8 data bits, no parity, 1 stop bit. 8N1 is the most common data frame format.) Uses a macro named BAUD to set the baud rate, as shown above; defaults to 9600 baud. Uses "CR and LF" line endings. No error checking or timeout.
+Limited to 8N1 data frames. (8 data bits, no parity, 1 stop bit. 8N1 is by far the most common data frame format.) `DebugSerial.begin()` defaults to 9600 baud. Uses "CR and LF" line endings. No error checking or timeout.
 
 Only capable of *sending* data to the PC. There are no `read()` or `parseXxx()` or `findXxx()` or `timeout` functions. Arduino's `String` objects are not supported.
 
@@ -22,7 +21,7 @@ So what's left? Print and println, mainly.
 
 |Function              |Remarks                                                                                 |
 |----------------------|----------------------------------------------------------------------------------------|
-|`begin()`             |no baudrate parameter, it's #defined, as above.                                         |
+|`begin(BAUDRATE)`     |default is  9600.                                                                |
 |`end()`               |disables the hardware and turns it off, saving a few microamps                          |
 |`flush()`             |flush waits for the last byte to be transmitted by the USART hardware.                  |
 |`print()`, `println()`|print most types of data in readable format.                                            |
@@ -84,8 +83,6 @@ Document functions more thoroughly.
 Measure flash and RAM consumption more rigorously.
 
 Support the `F()` macro in `print()` functions.
-
-Change `begin()` to match Arduino's `Serial.begin(baudrate)`, and remove the requirement to define BAUD before including the library.
 
 More convenience macros for printing stuff to the serial monitor.
 
