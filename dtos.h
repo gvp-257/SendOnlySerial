@@ -1,67 +1,50 @@
 #ifndef DTOS_H
 #define DTOS_H
 /*
-
   DTOS: "Debug TO Serial", or "De-featured Transmit-Only Serial"
-  ------------------------------------------------------------
+  ==============================================================
 
   Low RAM Arduino library for sending data and text to Arduino's Serial
   Monitor. ATmega168P/328P only (2009, Uno, Nano (original), Pro Mini, Micro)
 
   Has no error checking and no timeout support.
   Only uses 8N1 data frames (bytes).
-  No support for Arduino String objects.
-  Printing C strings stored in PROGMEM (flash memory) is slightly awkward.
+  No support for Arduino String objects. Does not support Arduino's "F()" macro.
 
-  BUT:
+  Printing C strings stored in PROGMEM (flash memory) is possible but slightly
+  awkward.  Use:-
+
+    static const char flashstring[] PROGMEM = "The string you want to print";
+    // Have to give the string a name, different for each one.
+
+    DebugSerial.printlnP(flashstring);
+    // Note the 'P':   ^, & no []s: ^
+
+
+  WHY THOUGH?
+  ===========
 
   DTOS uses very little RAM--unlike Serial, which grabs 175 precious,
   precious bytes. If you do Serial.Begin() even just once.
-
-  #include "dtos.h"
-
-  .... your defines, globals and functions ....
-
-  void setup() {
-      DebugSerial.begin();
-      DebugSerial.print("Started.");
-      .... your setup code ....
-  }
-
-  Void loop() {
-    .... your code ....
-  }
-
 
 
   NOTES
   =====
   1. Printing any floating-point number will increase the flash usage of this
-  library by about 1900 bytes. Try to avoid using floating-point numbers.
+  library by about 1900 bytes, and allocate some RAM.
+  Try to avoid using floating-point numbers.
+
+  2. DebugSerial.begin() defaults to 9600 baud,
+  for other rates use DebugSerial.begin(baudrate).
 
   References
-  -----------
+  ==========
   ATmega88/168/328/P/PA datasheet: section 20, USART0.
   AVR-libc documentation for util/setbaud.h and stdlib.h.
   "MAKE: AVR Programming" by Elliot Williams. Makermedia, Sebastopol, CA, USA;
   2014. Chapter 9 on serial communications using the USART.
-
 */
-
-
 #include <avr/pgmspace.h>    // For PrintStringP, TXDataP
-
-//Number printing formats. These are defined in Arduino's "Print.h" header file.
-#ifndef DEC
-#define DEC 10
-#endif
-#ifndef HEX
-#define HEX 16
-#endif
-#ifndef BIN
-#define BIN 2
-#endif
-
 
 // Debugging macros:
 #ifndef NDEBUG
@@ -105,6 +88,16 @@ DebugSerial.println()
 
 #endif //NDEBUG.
 
+//Number printing formats. These are defined in Arduino's "Print.h" header file.
+#ifndef DEC
+#define DEC 10
+#endif
+#ifndef HEX
+#define HEX 16
+#endif
+#ifndef BIN
+#define BIN 2
+#endif
 
 
 /* Defined for convenience */
@@ -294,7 +287,20 @@ struct M328P_USART
 
 
     // Strings stored in PROGMEM.
-    // defined: static const char infostring[] PROGMEM = "InfoInfoInfo!";
+// F macro.
+// compile error: 'str' has incomplete type
+// WString.h:37:7: note: forward declaration of 'class __FlashStringHelper'
+// #if defined(F)   // F macro in Arduino's Print.h
+//     void print(const __FlashStringHelper str)
+//     {
+//         const char * s = reinterpret_cast<const char *>(str);
+//         TXStringP(s);
+//     }
+//     void println(const __FlashStringHelper str) {print(str); println();}
+// #endif
+
+    // Flash strings defined:
+    // static const char infostring[] PROGMEM = "InfoInfoInfo!";
 
     void printP(const char* string) {TXStringP(string);}
     void printlnP(const char* string) {TXStringP(string); println();}

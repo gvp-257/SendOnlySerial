@@ -16,7 +16,32 @@ Limited to 8N1 data frames. (8 data bits, no parity, 1 stop bit. 8N1 is by far t
 
 Only capable of *sending* data to the PC. There are no `read()` or `parseXxx()` or `findXxx()` or `timeout` functions. Arduino's `String` objects are not supported.
 
-So what's left? Print and println, mainly.
+So what's left? Print and println, mainly. And even that is a bit limited: There is no support for Arduino String objects, or Arduino's "F()" macro for strings in flash.
+
+Printing C strings stored in PROGMEM (flash memory) is possible but slightly awkward. Use:-
+
+
+    static const char flashstring[] PROGMEM = "The string you want to print";
+    // Have to give the string a name, different for each one.
+
+    DebugSerial.printlnP(flashstring);
+    // Note the 'P':   ^, & no []s: ^
+
+
+DTOS does have a few macros of its own, usable unless NDEBUG is defined:
+
+**printVar(integer-variable)**:  prints a line with the name of the variable and its contents ini decimal and hexadecimal.
+
+**printFloatVar(float-variable)**: the same for floating-point type variables, decimal only.
+
+**printReg(REGMACRO)**:  prints a line with the name and contents of the given ATmega register, in binary, hexadecimal, and decimal.
+
+Use these macros "bare", i.e. without putting `DebugSerial.` in front.
+
+    int count = 74;
+    printVar(count);  // count    74    0x4a
+
+With `NDEBUG` #defined, these macros do nothing. (You may need to `#undef NDEBUG` to use them.)
 
 
 |Function              |Remarks                                                                                 |
@@ -25,18 +50,15 @@ So what's left? Print and println, mainly.
 |`end()`               |disables the hardware and turns it off, saving a few microamps                          |
 |`flush()`             |flush waits for the last byte to be transmitted by the USART hardware.                  |
 |`print()`, `println()`|print most types of data in readable format.                                            |
+|`printP()`, `printlnP()`|print strings stored in program memory (flash). |
 |`write()`             |send individual characters(`write(c)`) or blocks of bytes (`write(array, sizeOfArray)`).|
 
 
 ### Strings in program memory (flash)
 
-`Print` and `println` don't currently support Arduino's `F()` macro, because the author can't (yet) understand C++'s `reinterpret_cast` feature. Instead there are
+    static const char infostring[] PROGMEM = "InfoInfoInfoInfo";
 
-
-| Function               |Remarks                                                          |
-|------------------------|-----------------------------------------------------------------|
-|`printP()`, `printlnP()`|print a string that has been defined with the PROGMEM attribute:-|
-|                        |static const char infostring[] PROGMEM = "InfoInfoInfoInfo"; DebugSerial.printlnP(infostring);  // no square brackets on the name|
+    DebugSerial.printlnP(infostring);  // no square brackets on the name
 
 
 All the above functions are members of the `DebugSerial` object.  `DebugSerial.begin();`, and so on.
@@ -76,18 +98,16 @@ as at 2025-08-08  GvP.
 
 ### Maybe
 
-Adapt to support the ATtiny44/84, ATtiny85, ATmega2560, ATmega1284P microcontrollers.
+Adapt to support the ATtiny44/84, ATtiny85, ATmega2560, and/or ATmega1284P microcontrollers.
 
 Document functions more thoroughly.
 
 Measure flash and RAM consumption more rigorously.
 
-Support the `F()` macro in `print()` functions.
-
-More convenience macros for printing stuff to the serial monitor.
-
 
 ### Unlikely
+
+Support the `F()` macro in `print()` functions.  This seems tricky.
 
 Support other parities, stop bits, and error checking.
 
