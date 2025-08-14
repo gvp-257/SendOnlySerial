@@ -45,7 +45,7 @@
   "MAKE: AVR Programming" by Elliot Williams. Makermedia, Sebastopol, CA, USA;
   2014. Chapter 9 on serial communications using the USART.
 */
-#include <avr/pgmspace.h>    // For TXDataP
+#include <avr/pgmspace.h>    // For TXDataP, TXStringP
 
 // Possibly useful debugging macros:-
 #ifndef NDEBUG

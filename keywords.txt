@@ -7,10 +7,19 @@
 begin	KEYWORD2
 end	KEYWORD2
 flush	KEYWORD2
+isReady	KEYWORD2
 print	KEYWORD2
+printBinary	KEYWORD2
+printDigit	KEYWORD2
 println	KEYWORD2
 printlnP	KEYWORD2
 printP	KEYWORD2
+TXData	KEYWORD2
+TXDataP	KEYWORD2
+TXString	KEYWORD2
+TXStringP	KEYWORD2
+write	KEYWORD2
+writeP	KEYWORD2
 
 # Instances (KEYWORD2)
 SendOnlySerial	KEYWORD2
