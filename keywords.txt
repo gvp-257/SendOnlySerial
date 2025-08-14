@@ -1,0 +1,18 @@
+# Syntax Coloring Map For SendOnlySerial
+
+# Datatypes (KEYWORD1)
+
+
+# Methods and Functions (KEYWORD2)
+begin	KEYWORD2
+end	KEYWORD2
+flush	KEYWORD2
+print	KEYWORD2
+println	KEYWORD2
+printlnP	KEYWORD2
+printP	KEYWORD2
+
+# Instances (KEYWORD2)
+SendOnlySerial	KEYWORD2
+
+# Constants (LITERAL1)
