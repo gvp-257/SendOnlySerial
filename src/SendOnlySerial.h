@@ -1,31 +1,32 @@
-#ifndef DTOS_H
-#define DTOS_H
+#ifndef SENDONLYSERIAL_H
+#define SENDONLYSERIAL_H
 /*
-  DTOS: "Debug TO Serial", or "De-featured Transmit-Only Serial"
-  ==============================================================
+  Send Only Serial for debugging or logging using ATmega328's hardware serial.
 
-  Low RAM Arduino library for sending data and text to Arduino's Serial
-  Monitor. ATmega168P/328P only (2009, Uno, Nano (original), Pro Mini, Micro)
+  Low RAM usage Arduino library for sending data and text to Arduino's Serial
+  Monitor, or to another Arduino for logging.
+  ATmega168P/328P only (2009, Uno, Nano (original), Pro Mini, Micro).
 
   Has no error checking and no timeout support.
   Only uses 8N1 data frames (bytes).
   No support for Arduino String objects. Does not support Arduino's "F()" macro.
+  Don't use it at the same time as Arduino's Serial.
 
   Printing C strings stored in PROGMEM (flash memory) is possible but slightly
   awkward.  Use:-
 
-    static const char flashstring[] PROGMEM = "The string you want to print";
+    static const char aFlashString[] PROGMEM = "The string you want to print";
     // Have to give the string a name, different for each one.
 
-    DebugSerial.printlnP(flashstring);
-    // Note the 'P':   ^, & no []s: ^
+    SendOnlySerial.printlnP(aFlashString);
+    // Note the 'P': -----^ and no []s: ^
 
 
   WHY THOUGH?
   ===========
 
-  DTOS uses very little RAM--unlike Serial, which grabs 175 precious,
-  precious bytes. If you do Serial.Begin() even just once.
+  SendOnlySerial uses very little RAM--unlike Serial, which grabs 175 precious,
+  precious bytes. Even if you do one tiny little Serial.begin() just once.
 
 
   NOTES
@@ -34,8 +35,8 @@
   library by about 1900 bytes, and allocate some RAM.
   Try to avoid using floating-point numbers.
 
-  2. DebugSerial.begin() defaults to 9600 baud,
-  for other rates use DebugSerial.begin(baudrate).
+  2. SendOnlySerial.begin() defaults to 9600 baud.
+  For other rates use SendOnlySerial.begin(baudrate).
 
   References
   ==========
@@ -44,38 +45,45 @@
   "MAKE: AVR Programming" by Elliot Williams. Makermedia, Sebastopol, CA, USA;
   2014. Chapter 9 on serial communications using the USART.
 */
-#include <avr/pgmspace.h>    // For PrintStringP, TXDataP
+#include <avr/pgmspace.h>    // For TXDataP
 
-// Debugging macros:
+// Possibly useful debugging macros:-
 #ifndef NDEBUG
 
 #ifndef printReg
 #define printReg(r) \
-DebugSerial.print(#r); DebugSerial.print('\t'); DebugSerial.printBinary(r); \
-DebugSerial.print("\t0x"); DebugSerial.print(r, HEX); \
-DebugSerial.print('\t'); DebugSerial.print(r, DEC); \
-DebugSerial.println()
+SendOnlySerial.print(#r); SendOnlySerial.print('\t'); SendOnlySerial.printBinary(r); \
+SendOnlySerial.print("\t0x"); SendOnlySerial.print(r, HEX); \
+SendOnlySerial.print('\t'); SendOnlySerial.print(r, DEC); \
+SendOnlySerial.println()
+
+// printReg(ADCSRA) gives a line:  ADCSRA  B1000 0111    0x87     135
+
 #endif
 
 #ifndef printVar
 #define printVar(x) \
-DebugSerial.print(#x); \
-DebugSerial.print('\t'); \
-DebugSerial.print(x, DEC); \
-DebugSerial.print("\t0x"); \
-DebugSerial.print(x, HEX); \
-DebugSerial.println()
+SendOnlySerial.print(#x); \
+SendOnlySerial.print('\t'); \
+SendOnlySerial.print(x, DEC); \
+SendOnlySerial.print("\t0x"); \
+SendOnlySerial.print(x, HEX); \
+SendOnlySerial.println()
 #endif
 
+// int arrowcount = 22; printVar(arrowcount) gives: arrowcount      22     0x16
+
+
 // printVar works for floating-points format as well as integers.
-// Just with 10 and 16 decimals. So, printFloatVar:
+// Just twice in decimal with 10 and 16 decimals.
+// So, printFloatVar (decimal only):
 
 #ifndef printFloatVar
 #define printFloatVar(x) \
-DebugSerial.print(#x); \
-DebugSerial.print('\t'); \
-DebugSerial.print(x, 6); \
-DebugSerial.println()
+SendOnlySerial.print(#x); \
+SendOnlySerial.print('\t'); \
+SendOnlySerial.print(x, 6); \
+SendOnlySerial.println()
 #endif
 
 #else
@@ -89,6 +97,7 @@ DebugSerial.println()
 #endif //NDEBUG.
 
 //Number printing formats. These are defined in Arduino's "Print.h" header file.
+// If that didn't get included we need them here.
 #ifndef DEC
 #define DEC 10
 #endif
@@ -104,7 +113,7 @@ DebugSerial.println()
 #define   USART_READY      bit_is_set(UCSR0A, UDRE0)
 
 
-struct M328P_USART
+struct AVR_USART
 {
     void begin(void) {begin(9600);}
     void begin(const unsigned long baud)
@@ -307,6 +316,6 @@ struct M328P_USART
 };
 
 // The object:
-struct M328P_USART DebugSerial;
+struct AVR_USART SendOnlySerial;
 
 #endif

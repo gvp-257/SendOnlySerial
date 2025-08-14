@@ -1,47 +1,51 @@
-# dtos.h
+# SendOnlySerial.h
 
-The ""Debug TO Serial" library, or the "De-featured Transmit-Only Serial" library.
+Lightweight alternative to Arduino's Serial for debugging or logging. Down to 0 bytes vs. Serial's 175 bytes RAM. Uno, Nano, Pro Mini, and breadboard Arduinos using the Atmega328P chip only.
 
-
-    #include "dtos.h"
-
-
-A low memory library for the hardware serial port on ATmega328Ps:
-an alternative to Arduino's `Serial` object for the common use case of sending
-data to the Arduino IDE's Serial Monitor.
-
-For Arduino Uno, Nano, Pro Mini, Duemilanove and "breadboard Arduinos" using the ATmega168/328P only.
-
-Limited to 8N1 data frames. (8 data bits, no parity, 1 stop bit. 8N1 is by far the most common data frame format.) `DebugSerial.begin()` defaults to 9600 baud. Uses "CR and LF" line endings. No error checking or timeout.
-
-Only capable of *sending* data to the PC. There are no `read()` or `parseXxx()` or `findXxx()` or `timeout` functions. Arduino's `String` objects are not supported.
-
-So what's left? Print and println, mainly. And even that is a bit limited: There is no support for Arduino String objects, or Arduino's "F()" macro for strings in flash.
-
-Printing C strings stored in PROGMEM (flash memory) is possible but slightly awkward. Use:-
+SendOnlySerial uses the TX0 "hardware serial" line which is also connected to the USB interface on Unos and Nanos, just like Serial. Don't use Serial together with SendOnlySerial.  But if you want those 175 bytes, read on.
 
 
-    static const char flashstring[] PROGMEM = "The string you want to print";
-    // Have to give the string a name, different for each one.
-
-    DebugSerial.printlnP(flashstring);
-    // Note the 'P':   ^, & no []s: ^
+    #include "SendOnlySerial.h"
 
 
-DTOS does have a few macros of its own, usable unless NDEBUG is defined:
+## What's Been Removed?
 
-**printVar(integer-variable)**:  prints a line with the name of the variable and its contents ini decimal and hexadecimal.
+SendOnlySerial is limited to 8N1 data frames. (8 data bits, no parity, 1 stop bit. 8N1 is by far the most common data frame format.) `SendOnlySerial.begin()` defaults to 9600 baud. Uses "CR and LF" line endings. No error checking or timeout.
 
-**printFloatVar(float-variable)**: the same for floating-point type variables, decimal only.
+SendOnlySerial is only capable of *sending* data to the PC. There are no `read()` or `available()` or `parseXxx()` or `findXxx()` or `setTimeout()` functions. Arduino's `String` objects are not supported. (If you're considering using this library, Arduino `String` objects use too much RAM for you anyway.)
+
+## So What's Left, Then?
+
+`print()` and `println()`, mainly. And even those are a bit limited: Besides `String` objects, there is no support for Arduino's `F()` macro for strings in flash (program memory).
+
+Printing strings stored in flash is possible, but slightly awkward. You have to give each one a name, and use a "printP" function instead of "print". Like so:-
+
+
+    static const char aFlashString[] PROGMEM = "The string you want to print";
+    //  different name for each string. Note the square brackets (array).
+
+    SendOnlySerial.printlnP(aFlashString);
+    // Note the 'P': -----^ and no []s: ^
+
+
+## Anything Added?
+
+`SendOnlySerial` does have a few macros of its own, usable unless `NDEBUG` is defined:
+
+**printVar(integer-variable)**:  prints a line with the name of the variable and its contents, in decimal and hexadecimal.
+
+**printFloatVar(float-variable)**: the same for floating-point type variables, in decimal only.
 
 **printReg(REGMACRO)**:  prints a line with the name and contents of the given ATmega register, in binary, hexadecimal, and decimal.
 
-Use these macros "bare", i.e. without putting `DebugSerial.` in front.
+Use these macros "bare", i.e. without putting `SendOnlySerial.` in front:
 
     int count = 74;
-    printVar(count);  // count    74    0x4a
+    printVar(count);  // prints: count    74    0x4a
 
 With `NDEBUG` #defined, these macros do nothing. (You may need to `#undef NDEBUG` to use them.)
+
+## SendOnlySerial Functions
 
 
 |Function              |Remarks                                                                                 |
@@ -51,45 +55,36 @@ With `NDEBUG` #defined, these macros do nothing. (You may need to `#undef NDEBUG
 |`flush()`             |flush waits for the last byte to be transmitted by the USART hardware.                  |
 |`print()`, `println()`|print most types of data in readable format.                                            |
 |`printP()`, `printlnP()`|print strings stored in program memory (flash). |
-|`write()`             |send individual characters(`write(c)`) or blocks of bytes (`write(array, sizeOfArray)`).|
+|`write()`             |send individual characters(`write(c)`) or blocks of bytes (`write(array, sizeOfArray)`) without making them readable.|
 
 
-### Strings in program memory (flash)
+### For Strings in program memory (flash)
 
     static const char infostring[] PROGMEM = "InfoInfoInfoInfo";
 
-    DebugSerial.printlnP(infostring);  // no square brackets on the name
+    SendOnlySerial.printlnP(infostring);  // no square brackets on the name
 
 
-All the above functions are members of the `DebugSerial` object.  `DebugSerial.begin();`, and so on.
+All the above functions are members of the `SendOnlySerial` object.  `SendOnlySerial.begin();`, and so on.
 
 You might like to define shorthand macros to save on typing and clutter in your code:
 
-      #define ds DebugSerial   // now can use ds.begin(), ds.println()
+      #define SOS SendOnlySerial   // now can use SOS.begin(), SOS.println()
 
-      #define flashstring(name, value) static const char name[] PROGMEM = value
-      // now can use: flashstring(info, "InfoInfoInfo");
-
-
-
-## Motivation
-
-Arduino's built-in `Serial` object uses 175 bytes of precious SRAM on the ATmega328P as soon as you do `Serial.begin(BAUDRATE)`. This on top of the strings that you want to print to the serial monitor.
-
-`dtos` uses none for itself, unless you want to print floating-point numbers as text to the serial port.  `dtos` uses about 1200 bytes of flash in simple cases.
+      #define flashString(stringName, stringValue) static const char stringName[] PROGMEM = stringValue
+      // now can use: flashString(info, "InfoInfoInfo");
 
 
-### Note on floating-point
+### Note on Floating-Point
 
-If you print floating-point numbers in readable format, `dtos`  uses an extra 2kb-ish of flash memory and 28 bytes of RAM, in the AVR-libC standard library function `dtostrf()` for formatting floating-point numbers.  Try to avoid doing that.
-
+If you print floating-point numbers in readable format, `SendOnlySerial`  uses an extra 2kb-ish of flash memory and 28 bytes of RAM, in the AVR-libC standard library function `dtostrf()` for formatting floating-point numbers.  Try to avoid doing that.
 
 
 ## Limitations
 
 Besides those listed above? :-)
 
-Because Arduino claims the "USART data register empty" interrupt for the Serial object, all `print` and `write` functions are blocking. They will return to your code when the last byte has been handed off to the ATmega's hardware for transmission. `flush()` waits for that last byte to be transmitted.
+Because Arduino claims the "USART data register empty" interrupt for the Serial object, all of SendOnlySerial's functions are blocking. `print()` and `printP()`, `println` and `printlnP()` mostly wait for the hardware to trundle the bits and bytes out over the wire, and they will return to your code only when the last byte has been handed off to the ATmega's internal hardware serial module for transmission. `flush()` waits for the hardware to tell us that that last byte has been sent.
 
 
 ## TODO
