@@ -1,11 +1,18 @@
 #ifndef SENDONLYSERIAL_H
 #define SENDONLYSERIAL_H
-/*
-  Send Only Serial for debugging or logging using ATmega328's hardware serial.
 
-  Low RAM usage Arduino library for sending data and text to Arduino's Serial
-  Monitor, or to another Arduino for logging.
-  ATmega168P/328P only (2009, Uno, Nano (original), Pro Mini, Micro).
+// SendOnlySerial:  low-RAM lib for debugging or logging using ATmega328P's
+// hardware USART (USART0).
+
+// GvP, 2025.   MIT licence.
+// https://github.com/gvp-257/SendOnlySerial
+
+/*
+  Low RAM usage library for sending data and text to Arduino's Serial
+  Monitor, or to another Arduino for logging (via the TX0 pin).
+
+  ATmega168PA/328P only (2009, Uno, Nano (original), Pro Mini, Micro).
+  Possible TODO: extend to ATtiny84, ATmega1284P, and/or ATmega2560 (Mega).
 
   Has no error checking and no timeout support.
   Only uses 8N1 data frames (bytes).
@@ -16,15 +23,17 @@
   awkward.  Use:-
 
     static const char aFlashString[] PROGMEM = "The string you want to print";
+
     // Have to give the string a name, different for each one.
 
     SendOnlySerial.printlnP(aFlashString);
-    // Note the 'P': -----^ and no []s: ^
+    //                    ^             ^
+    //                    |             |
+    // Note the 'P': -----+ and no []:  +
 
 
   WHY THOUGH?
   ===========
-
   SendOnlySerial uses very little RAM--unlike Serial, which grabs 175 precious,
   precious bytes. Even if you do one tiny little Serial.begin() just once.
 
@@ -40,12 +49,24 @@
 
   References
   ==========
-  ATmega88/168/328/P/PA datasheet: section 20, USART0.
-  AVR-libc documentation for util/setbaud.h and stdlib.h.
+  ATmega88A/PA/168A/PA/328/P datasheet: section 20, USART0.
+  https://www.microchip.com/en-us/product/ATMEGA328P
+
+  Arduino Reference for Serial:-
+  https://docs.arduino.cc/language-reference/en/functions/communication/serial/
+
   "MAKE: AVR Programming" by Elliot Williams. Makermedia, Sebastopol, CA, USA;
   2014. Chapter 9 on serial communications using the USART.
 */
-#include <avr/pgmspace.h>    // For TXDataP, TXStringP
+
+#if defined (__AVR_ATmega328P__)  || defined (__AVR_ATmega168PA__) \
+ || defined (__AVR_ATmega328PB__) || defined (__AVR_ATmega328__)   \
+ || defined (__AVR_ATmega88PA__)  || defined (__AVR_ATmega168A__)  \
+ || defined (__AVR_ATmega48PA__)
+#else
+#error “SendOnlySerial only supports boards with AVR ATmega168A/PA/328/P/PB processor.”
+#endif
+
 
 // Possibly useful debugging macros:-
 #ifndef NDEBUG
@@ -73,7 +94,6 @@ SendOnlySerial.println()
 
 // int arrowcount = 22; printVar(arrowcount) gives: arrowcount      22     0x16
 
-
 // printVar works for floating-points format as well as integers.
 // Just twice in decimal with 10 and 16 decimals.
 // So, printFloatVar (decimal only):
@@ -87,13 +107,15 @@ SendOnlySerial.println()
 #endif
 
 #else
-
+#ifndef printReg
 #define printReg
-
+#endif
+#ifndef printVar
 #define printVar
-
+#endif
+#ifndef printFloatVar
 #define printFloatVar
-
+#endif
 #endif //NDEBUG.
 
 //Number printing formats. These are defined in Arduino's "Print.h" header file.
@@ -115,207 +137,95 @@ SendOnlySerial.println()
 
 struct AVR_USART
 {
-    void begin(void) {begin(9600);}
-    void begin(const unsigned long baud)
-    {
-        // turn on the peripheral and configure it for 8N1 and selected BAUD.
-        PRR    &= ~(1<<PRUSART0);
+    void begin(void);                 // power on, default baud rate 9600
+    void begin(const unsigned long);  // baud rate.
+    void end(void);                   // power off USART hardware module.
+    void flush(void);                 // Wait for last byte to be sent.
 
-        // Data size 8 bits, Async mode, no parity and 1 stop bit.
-        UCSR0C = (1<<UCSZ01) | (1<<UCSZ00);
-        // UMSEL01, UMSEL00 = 0 -> Asynchronous UART mode
-        // UPM01, UPM00 = 0 -> No parity; USBS = 0 -> 1 stop bit.
-        // UCPOL0 = 0 -> normal polarity.
+    bool isReady(void);               // USART has room for a byte to send.
+    bool ready(void);
 
-        uint16_t baudreg = ((F_CPU / 4 / baud) - 1) / 2;
+    // basic sending functions.
+    void TX(const uint8_t);           // Give the USART a byte to send.
+    void TXRaw(const uint8_t);        // Does not check if the USART has room.
+    void TXData(const uint8_t*, int); // Transmit bytes.
+    void TXString(const char* );      // Null-delimited ASCII.
 
-        if ((baudreg > 4095) || (baud == 57600 && F_CPU == 16000000UL))
-        {
-            UCSR0A &= ~(1<<U2X0);   // not USE_2X
-            baudreg = ((F_CPU / 8 / baud) -1) / 2; // re-calculate registers.
+    // Bytes that are in program memory (flash):-
+    void TXDataP(const uint8_t*, const int);
+    void TXStringP(const char *);
 
-        }
-        else {UCSR0A |= (1<<U2X0);} // USE_2X except in the case above.
-
-        UBRR0H = (uint8_t)(baudreg >> 8);
-        UBRR0L = (uint8_t)baudreg;
-
-        //Enable transmit and receive; no interrupts enabled.
-        UCSR0B &= ~((1<<RXCIE0) | (1<<TXCIE0) | (1<<UDRIE0) | (1<<UCSZ02));
-        UCSR0B |= (1<<RXEN0) | (1<<TXEN0);
-    }
-
-    void end(void)
-    {
-        UCSR0B = 0;             // turn off RXEN and TXEN.
-        PRR   |= 1<<PRUSART0;   // turn off the USART's clock.
-    }
-
-    void flush(void)
-    {
-        loop_until_bit_is_set(UCSR0A, TXC0);
-    }
-
-    //==============================================================================
-    //
-    // Transmit.
-    //
-
-    bool isReady(void)              {return USART_READY;}
-    bool ready(void)                {return USART_READY;}
-
-    void TXRaw(const uint8_t b)     {UDR0 = b;}
-
-    void TX(const uint8_t b)
-    {
-        loop_until_bit_is_set(UCSR0A, UDRE0); // wait till prev tx complete.
-        UDR0 = b;
-    }
-
-    // Transmitting multiple bytes:-
-    void TXData(const uint8_t* data, int num)
-    // Transmit num bytes from the supplied data array.
-    {
-        int i = 0;
-        while (num--) {TX(data[i++]);}
-    }
-
-    // Bytes are in program memory (flash):-
-    void TXDataP(const uint8_t* data, const int num)
-    {
-        for (int i = 0; i < num; i++) {TX(pgm_read_byte(&data[i]));}
-    }
-
-
-    // Transmitting text strings.
-
-    void TXString(const char* string)
-    // warning: Assumes string is properly terminated with a null 0 byte.
-    {
-        register int i = 0;
-        while (string[i]) {TX((uint8_t)string[i++]);}
-    }
-
-    // warning: Assumes string is properly terminated with a null 0 byte
-    // and has been declared with PROGMEM.
-    void TXStringP(const char * _s)
-    {
-        size_t  i = 0;
-        uint8_t c;
-        while ((c = pgm_read_byte(&_s[i++])) != '\0') {TX(c);}
-    }
-    void printBinary(const uint8_t b)
-    // transmit a binary representation of the byte.
-    {
-        TX('0'); TX('b');
-        TX(((b & 0x80))? '1':'0');
-        TX(((b & 0x40))? '1':'0');
-        TX(((b & 0x20))? '1':'0');
-        TX(((b & 0x10))? '1':'0');
-        TX(' ');
-        TX(((b & 0x08))? '1':'0');
-        TX(((b & 0x04))? '1':'0');
-        TX(((b & 0x02))? '1':'0');
-        TX(((b & 0x01))? '1':'0');
-    }
-
-    void printDigit(uint8_t d) {TX((d < 10)? (d + '0'): (d - 10 + 'a'));}
-
+    // Arduino spec-compliant(ish) functions. Write, print verbs.
 
     // Send a byte, or a block of bytes: an array or C-struct.
-    void write(const uint8_t b)              {TX(b);}
-    void write(const uint8_t* data, int num) {TXData(data, num);}
+    void write(const uint8_t);        // Arduino spec. version of TX
+    void write(const uint8_t*, int);  // ditto, TXData
     // PROGMEM version
-    void writeP(const uint8_t* data, int num) {TXDataP(data, num);}
+    void writeP(const uint8_t*, int); // similar, data in flash
 
-    // 8-bit types
-    void print(const bool b)    {if (b) print("true"); else print("false");}
-    void print(const char c)    {TX(c);} // also short
-    void print(const uint8_t b) {TX(b);}  // byte, unsigned char, unsigned short
+    // 8-bit special types
+    void printBinary(const uint8_t);  // B0010 1100 format: constant length
+                                      // better than print(b, 2)
+    void printDigit(uint8_t);         // numerical 4 bits -> char 0-9,a-f
+    void print(const bool);           // "true", "false"
+    void print(const char);           // receiver thinks ASCII
 
-    // Print strings - C null-delimited arrays only.
-    void print(const char* string) {TXString(string);}
-    void print(const double df, const int decimals = 4)
-    {
-        char buf[30] = {0};
-        dtostrf(df, 5, decimals, buf);
-        TXString(buf);
-    }
+    // Strings - C null-delimited arrays only.
+    void print(const char*);
 
     // Numerical types
-    void print(const float f, const int decimals = 4)
-    {
-        print((double)f, decimals);
-    }
-    void print(const long  integer, const int base=10)
-    {
-        char buf[20] = {0};
-        ltoa(integer, buf, base);
-        TXString(buf);
-    }
-    void print(const int integer, const int base=10)
-    {
-        print((long)integer, base);
-    }
-    void print(const uint8_t b, const int base=10)
-    {
-        char buf[20] = {0};
-        utoa((unsigned int)b, buf, base);
-        TXString(buf);
-    }
-    void print(const unsigned long integer, const int base=10)
-    {
-        char buf[20] = {0};
-        ultoa(integer, buf, base);
-        TXString(buf);
-    }
-    void print(const unsigned int integer, const int base=10)
-    {
-        print((unsigned long)integer, base);
-    }
+    void print(const double);            // value, decimals=4
+    void print(const double, const int); // value, decimals
+    void print(const float);
+    void print(const float, const int);
+
+    void print(const int);               // value, base = 10 (decimal)
+    void print(const int, const int);    // value, base 2 10 16 bin dec hex
+    void print(const long);
+    void print(const long, const int);
+
+    void print(const uint8_t);
+    void print(const uint8_t, const int);
+    void print(const unsigned int);
+    void print(const unsigned int, const int);
+    void print(const unsigned long);
+    void print(const unsigned long, const int);
+
+    // println() variants of the above.
+    void println(void);
+
+    void println(const bool);
+    void println(const char);
+    void println(const uint8_t);
+
+    void println(const char*);
+
+    void println(const double);
+    void println(const double, const int);
+    void println(const float);
+    void println(const float, const int);
+
+    void println(const int);
+    void println(const int, const int);
+    void println(const long);
+    void println(const long, const int);
+    void println(const unsigned int);
+    void println(const unsigned int, const int);
+    void println(const unsigned long);
+    void println(const unsigned long, const int);
 
 
-    // println variants
-    void println(void)               {print('\r'); print('\n');}
-
-    void println(const bool b)       {print((bool)b);      println();}
-    void println(const char c)       {print(c);      println();}
-    void println(const uint8_t b)    {print((short)b);      println();}
-
-    void println(const char* string) {print(string); println();}
-
-    void println(const double d, const int decimals = 4)
-        {print(d, decimals); println();}
-    void println(const float f, const int decimals = 4)
-        {print(f, decimals); println();}
-
-    void println(const int i, const int base = 10) {print(i, base); println();}
-    void println(const long l, const int base = 10){print(l, base); println();}
-    void println(const unsigned int i, const int base = 10) {print(i, base); println();}
-    void println(const unsigned long l, const int base = 10){print(l, base); println();}
-
-
-    // Strings stored in PROGMEM.
-// F macro.
-// compile error: 'str' has incomplete type
-// WString.h:37:7: note: forward declaration of 'class __FlashStringHelper'
-// #if defined(F)   // F macro in Arduino's Print.h
-//     void print(const __FlashStringHelper str)
-//     {
-//         const char * s = reinterpret_cast<const char *>(str);
-//         TXStringP(s);
-//     }
-//     void println(const __FlashStringHelper str) {print(str); println();}
-// #endif
-
-    // Flash strings defined:
+    // Strings in flash memory, defined:-
     // static const char infostring[] PROGMEM = "InfoInfoInfo!";
+    void printP(const char*);
+    void printlnP(const char*);
 
-    void printP(const char* string) {TXStringP(string);}
-    void printlnP(const char* string) {TXStringP(string); println();}
+// TODO: Support Arduino's 'F()' macro (Print.h).
+// TODO: Support Arduino Strings (maybe? - memory hungry.)
+
 };
 
 // The object:
-struct AVR_USART SendOnlySerial;
+extern struct AVR_USART SendOnlySerial;
 
 #endif

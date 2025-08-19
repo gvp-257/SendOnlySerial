@@ -6,13 +6,15 @@
 // Replaces uses of Serial.print() for debugging,
 // saves Serial's 175 bytes of RAM.
 
-// This example uses 61 bytes of RAM. 
-// Most of that is in the printFloat functions.
-// Try to avoid printing floating point variables.
+// This example uses 117 bytes of RAM.  Most of that is in the first and last strings
+// and internally in functions for printing floating point numbers.
+// Each use of printReg and/or printVar will consume a few bytes.
+// Try to avoid printing floating point variables, use PROGMEM for strings,
+// and comment out printVar() and printFloatVar() when not needed.
 
 
-// The printReg and printVar macros below are defined in SendOnlySerial.h.
-// They are included here so you can see what they do.
+// The printReg, printVar, and printFloatVar macros below are also defined in SendOnlySerial.h.
+// They are repeated here so that you can see what they do.
 
 #ifndef printReg
 #define printReg(r) \
@@ -40,17 +42,15 @@ void setup() {
   SendOnlySerial.begin(9600); // explicit; begin() defaults to 9600.
 
   //print a string.
-  char teststring[8] = "test!";  // 8 bytes global SRAM
+  char teststring[8] = "test!";  // 6 bytes global SRAM
   SendOnlySerial.println(teststring);
 
+  bool b = true;
+  SendOnlySerial.println(b);
+
   // and a string in Flash memory.
-
-  static const char aTestFlashString[] PROGMEM = "The Quick Brown Fox Jumps Over";
-
+  static const char aTestFlashString[] PROGMEM = "ATmega328P USART0 control registers, using printReg macro:";
   SendOnlySerial.printlnP(aTestFlashString);
-
-
-  // Print the USART's control registers
 
   printReg(UCSR0A);        // control and status register A
   printReg(UCSR0B);        // control and status register B
@@ -59,6 +59,8 @@ void setup() {
   SendOnlySerial.println();
 
   // Some integers using the printVar macro
+  static const char integerRangeString[] PROGMEM = "integers from -2 to 11 using printVar macro:";
+  SendOnlySerial.printlnP(integerRangeString);
 
   for (char i = -2; i < 11; i ++) {
     printVar(i);
@@ -81,17 +83,29 @@ void setup() {
     // -1 + '0' gives 47, ASCII for "/".
     // C, eh? *shakes head*
   }
+  SendOnlySerial.println();
 
   // printing a floating-point constant (shouldn't need debugging??)
+  static const char floatString[] PROGMEM = "printFloatVar() for floating point number -1.23456:";
+  SendOnlySerial.printlnP(floatString);
 
-  printFloatVar(-1.23456);
+  float floatNumber = -1.23456;
+  printFloatVar(floatNumber);
+  SendOnlySerial.println();
 
   // and just print some values using the regular print function.
+  static const char floatRangeString[] PROGMEM = "f-p numbers from PI up in steps of 0.4 to under 5:";
+  SendOnlySerial.printlnP(floatRangeString);
 
   for (float f2 = PI; f2 < 5; f2 +=  0.4) {
     SendOnlySerial.println(f2);
   }
+  SendOnlySerial.println();
 
+  char endoftest[] = "That concludes the basic test of SendOnlySerial.";
+  SendOnlySerial.println(endoftest);
+
+  SendOnlySerial.flush();
 }
 
 void loop() {}
