@@ -1,5 +1,5 @@
-#ifndef SENDONLYSERIAL_H
-#define SENDONLYSERIAL_H
+#ifndef SENDONLYSERIAL_LIB_H
+#define SENDONLYSERIAL_LIB_H
 
 // SendOnlySerial:  low-RAM lib for debugging or logging using ATmega328P's
 // hardware USART (USART0).
@@ -72,24 +72,26 @@
 #ifndef NDEBUG
 
 #ifndef printReg
-#define printReg(r) \
+#define printReg(r) do { \
 SendOnlySerial.print(#r); SendOnlySerial.print('\t'); SendOnlySerial.printBinary(r); \
 SendOnlySerial.print("\t0x"); SendOnlySerial.print(r, HEX); \
 SendOnlySerial.print('\t'); SendOnlySerial.print(r, DEC); \
-SendOnlySerial.println()
+SendOnlySerial.println() \
+} while(0)
 
 // printReg(ADCSRA) gives a line:  ADCSRA  B1000 0111    0x87     135
 
 #endif
 
 #ifndef printVar
-#define printVar(x) \
+#define printVar(x) do { \
 SendOnlySerial.print(#x); \
 SendOnlySerial.print('\t'); \
 SendOnlySerial.print(x, DEC); \
 SendOnlySerial.print("\t0x"); \
 SendOnlySerial.print(x, HEX); \
-SendOnlySerial.println()
+SendOnlySerial.println() \
+} while(0)
 #endif
 
 // int arrowcount = 22; printVar(arrowcount) gives: arrowcount      22     0x16
@@ -99,11 +101,12 @@ SendOnlySerial.println()
 // So, printFloatVar (decimal only):
 
 #ifndef printFloatVar
-#define printFloatVar(x) \
+#define printFloatVar(x) do {\
 SendOnlySerial.print(#x); \
 SendOnlySerial.print('\t'); \
 SendOnlySerial.print(x, 6); \
-SendOnlySerial.println()
+SendOnlySerial.println() \
+} while(0)
 #endif
 
 #else
@@ -148,20 +151,20 @@ struct AVR_USART
     // basic sending functions.
     void TX(const uint8_t);           // Give the USART a byte to send.
     void TXRaw(const uint8_t);        // Does not check if the USART has room.
-    void TXData(const uint8_t*, int); // Transmit bytes.
+    void TXData(const uint8_t*, size_t); // Transmit bytes.
     void TXString(const char* );      // Null-delimited ASCII.
 
     // Bytes that are in program memory (flash):-
-    void TXDataP(const uint8_t*, const int);
+    void TXDataP(const uint8_t*, size_t);
     void TXStringP(const char *);
 
     // Arduino spec-compliant(ish) functions. Write, print verbs.
 
     // Send a byte, or a block of bytes: an array or C-struct.
     void write(const uint8_t);        // Arduino spec. version of TX
-    void write(const uint8_t*, int);  // ditto, TXData
+    void write(const uint8_t*, size_t);  // ditto, TXData
     // PROGMEM version
-    void writeP(const uint8_t*, int); // similar, data in flash
+    void writeP(const uint8_t*, size_t); // similar, data in flash
 
     // 8-bit special types
     void printBinary(const uint8_t);  // B0010 1100 format: constant length

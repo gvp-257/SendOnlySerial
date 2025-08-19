@@ -17,24 +17,27 @@
 // They are repeated here so that you can see what they do.
 
 #ifndef printReg
-#define printReg(r) \
+#define printReg(r) do { \
 SendOnlySerial.print(#r); SendOnlySerial.print('\t'); SendOnlySerial.printBinary(r); \
 SendOnlySerial.print("\t0x"); SendOnlySerial.print(r, HEX); \
 SendOnlySerial.print('\t'); SendOnlySerial.print(r, DEC); \
-SendOnlySerial.println()
+SendOnlySerial.println() \
+} while(0)
 #endif
 
 #ifndef printVar
-#define printVar(x) \
+#define printVar(x) do {\
 SendOnlySerial.print(#x); SendOnlySerial.print('\t'); \
 SendOnlySerial.print(x, DEC); SendOnlySerial.print("\thex "); \
-SendOnlySerial.print(x, HEX); SendOnlySerial.println()
+SendOnlySerial.print(x, HEX); SendOnlySerial.println() \
+} while(0)
 #endif
 
 #ifndef printFloatVar
-#define printFloatVar(x) \
+#define printFloatVar(x) do {\
 SendOnlySerial.print(#x); SendOnlySerial.print('\t'); \
-SendOnlySerial.print(x, 6); SendOnlySerial.println()
+SendOnlySerial.print(x, 6); SendOnlySerial.println() \
+} while (0)
 #endif
 
 
@@ -67,21 +70,15 @@ void setup() {
 
     // SendOnlySerial.println(i);  // <-- Prints strange characters!
     
-    // There's a fish-hook with printing variables defined as "char" in C.
-    // char is really a number, but the receiving hardware tries to interpret
-    // it as an ASCII code, and print that.
-    // (Because no one prints small numbers, do they?)
-    // To print 'char's readably, use this magic formula:-
-
     SendOnlySerial.println((char)(i + '0'));
-    
+    // This converts i to a printable number by adding ASCII '0' offset
+    // Preventing interpretation as ASCII control characters
+
     // Adding the ASCII code for 0 to the character makes an "int",
     // which we then have to convert back to "char" format with (char).
-    // (That's called a "cast". I think from casting metal into molds.)
-    // Anyway:-
+
     // -2 + '0' (48) gives 46, which is ASCII code for "." dot.
     // -1 + '0' gives 47, ASCII for "/".
-    // C, eh? *shakes head*
   }
   SendOnlySerial.println();
 

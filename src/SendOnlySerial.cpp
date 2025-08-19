@@ -11,8 +11,13 @@
 #include "SendOnlySerial.h"
 
 void AVR_USART::begin(void) {begin(9600);}
-void AVR_USART::begin(const unsigned long baud)
+
+void AVR_USART::begin(const unsigned long baudRequested)
 {
+    unsigned long baud = baudRequested;
+
+    if (baud < 300 ) {baud = 300;}  // 16 MHz system clock can't go below 300.
+
     // turn on the peripheral and configure it for 8N1 and selected BAUD.
     PRR    &= ~(1<<PRUSART0);
 
@@ -57,6 +62,7 @@ void AVR_USART::flush(void)
 //
 
 bool AVR_USART::isReady(void)              {return USART_READY;}
+
 bool AVR_USART::ready(void)                {return USART_READY;}
 
 void AVR_USART::TX(const uint8_t b)
@@ -68,7 +74,7 @@ void AVR_USART::TX(const uint8_t b)
 void AVR_USART::TXRaw(const uint8_t b)     {UDR0 = b;}
 
 // Transmitting multiple bytes:-
-void AVR_USART::TXData(const uint8_t* data, int num)
+void AVR_USART::TXData(const uint8_t* data, size_t num)
 // Transmit num bytes from the supplied data array.
 {
     int i = 0;
@@ -76,7 +82,7 @@ void AVR_USART::TXData(const uint8_t* data, int num)
 }
 
 // Bytes are in program memory (flash):-
-void AVR_USART::TXDataP(const uint8_t* data, const int num)
+void AVR_USART::TXDataP(const uint8_t* data, size_t num)
 {
     for (int i = 0; i < num; i++) {TX(pgm_read_byte(&data[i]));}
 }
@@ -87,6 +93,7 @@ void AVR_USART::TXDataP(const uint8_t* data, const int num)
 void AVR_USART::TXString(const char* string)
 // warning: Assumes string is properly terminated with a null 0 byte.
 {
+    if (!string) return;
     register int i = 0;
     while (string[i]) {TX((uint8_t)string[i++]);}
 }
@@ -95,6 +102,7 @@ void AVR_USART::TXString(const char* string)
 // and has been declared with PROGMEM.
 void AVR_USART::TXStringP(const char * _s)
 {
+    if (!string) return;
     size_t  i = 0;
     uint8_t c;
     while ((c = pgm_read_byte(&_s[i++])) != '\0') {TX(c);}
@@ -103,9 +111,11 @@ void AVR_USART::TXStringP(const char * _s)
 
 // Send a byte, or a block of bytes: an array or C-struct.
 void AVR_USART::write(const uint8_t b)              {TX(b);}
-void AVR_USART::write(const uint8_t* data, int num) {TXData(data, num);}
+
+void AVR_USART::write(const uint8_t* data, size_t num) {TXData(data, num);}
+
 // PROGMEM version
-void AVR_USART::writeP(const uint8_t* data, int num) {TXDataP(data, num);}
+void AVR_USART::writeP(const uint8_t* data, size_t num) {TXDataP(data, num);}
 
 //Numerical types.
 
@@ -132,10 +142,13 @@ void AVR_USART::printDigit(uint8_t d) {d &= 0x0f; TX((d < 10)? (d + '0'): (d - 1
 
 // 8-bit special types
 void AVR_USART::print(const bool b)    {if (b) print("true"); else print("false");}
-void AVR_USART::print(const char c)    {TX(c);}  // also short
-
+void AVR_USART::print(const char c)    {TX(c);}
 // Print strings - C null-delimited arrays only.
-void AVR_USART::print(const char* string) {TXString(string);}
+void AVR_USART::print(const char* string)
+{
+    if (!string) return;
+    TXString(string);
+}
 
 
 // Floating-point types
@@ -232,3 +245,6 @@ void AVR_USART::printlnP(const char* string) {TXStringP(string); println();}
 //     }
 //     void AVR_USART::println(const __FlashStringHelper str) {print(str); println();}
 // #endif
+
+// The object:
+struct AVR_USART SendOnlySerial;
