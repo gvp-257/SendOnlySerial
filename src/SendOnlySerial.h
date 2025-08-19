@@ -76,7 +76,7 @@
 SendOnlySerial.print(#r); SendOnlySerial.print('\t'); SendOnlySerial.printBinary(r); \
 SendOnlySerial.print("\t0x"); SendOnlySerial.print(r, HEX); \
 SendOnlySerial.print('\t'); SendOnlySerial.print(r, DEC); \
-SendOnlySerial.println() \
+SendOnlySerial.println(); \
 } while(0)
 
 // printReg(ADCSRA) gives a line:  ADCSRA  B1000 0111    0x87     135
@@ -90,7 +90,7 @@ SendOnlySerial.print('\t'); \
 SendOnlySerial.print(x, DEC); \
 SendOnlySerial.print("\t0x"); \
 SendOnlySerial.print(x, HEX); \
-SendOnlySerial.println() \
+SendOnlySerial.println(); \
 } while(0)
 #endif
 
@@ -105,7 +105,7 @@ SendOnlySerial.println() \
 SendOnlySerial.print(#x); \
 SendOnlySerial.print('\t'); \
 SendOnlySerial.print(x, 6); \
-SendOnlySerial.println() \
+SendOnlySerial.println(); \
 } while(0)
 #endif
 

@@ -84,7 +84,7 @@ void AVR_USART::TXData(const uint8_t* data, size_t num)
 // Bytes are in program memory (flash):-
 void AVR_USART::TXDataP(const uint8_t* data, size_t num)
 {
-    for (int i = 0; i < num; i++) {TX(pgm_read_byte(&data[i]));}
+    for (size_t i = 0; i < num; i++) {TX(pgm_read_byte(&data[i]));}
 }
 
 
@@ -102,7 +102,7 @@ void AVR_USART::TXString(const char* string)
 // and has been declared with PROGMEM.
 void AVR_USART::TXStringP(const char * _s)
 {
-    if (!string) return;
+    if (!_s) return;
     size_t  i = 0;
     uint8_t c;
     while ((c = pgm_read_byte(&_s[i++])) != '\0') {TX(c);}
