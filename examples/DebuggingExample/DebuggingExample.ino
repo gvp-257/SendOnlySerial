@@ -3,17 +3,20 @@
 
 #include "SendOnlySerial.h"
 
-// Replaces uses of Serial.print() for debugging,
-// saves Serial's 175 bytes of RAM.
+// Debugging Example: demonstrates use of the debugging macros,
+// printReg, PrintVar, and printFloatVar.
 
-// This example uses 117 bytes of RAM.  Most of that is in the first and last strings
+// This example uses 115 bytes of RAM.
+// Most of that is in the first and last strings,
 // and internally in functions for printing floating point numbers.
+
 // Each use of printReg and/or printVar will consume a few bytes.
 // Try to avoid printing floating point variables, use PROGMEM for strings,
 // and comment out printVar() and printFloatVar() when not needed.
 
 
-// The printReg, printVar, and printFloatVar macros below are also defined in SendOnlySerial.h.
+// The printReg, printVar, and printFloatVar macros below are defined in SendOnlySerial.h.
+
 // They are repeated here so that you can see what they do.
 
 #ifndef printReg
@@ -44,8 +47,8 @@ SendOnlySerial.print(x, 6); SendOnlySerial.println() \
 void setup() {
   SendOnlySerial.begin(9600); // explicit; begin() defaults to 9600.
 
-  //print a string.
-  char teststring[8] = "test!";  // 6 bytes global SRAM
+  //print a string stored in RAM.
+  char teststring[] = "test!";  // 6 bytes global SRAM
   SendOnlySerial.println(teststring);
 
   bool b = true;
