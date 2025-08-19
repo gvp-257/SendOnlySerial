@@ -30,18 +30,27 @@ Printing strings stored in flash is possible, but slightly awkward. You have to 
 
 ## Anything Added?
 
-`SendOnlySerial` does have a few macros of its own, usable unless `NDEBUG` is defined:
+`SendOnlySerial.printBinary(byte b)`: print a single byte in fixed length binary format, in two groups of four bits.
+
+    SendOnlySerial.printBinary(0xc6);  // prints "0b1100 0110"  via serial.
+
+Also, `SendOnlySerial.printDigit(byte b)`: prints the low four bits of b in ASCII.
+
+    SendOnlySerial.printDigit(0xf5);   // prints "5".
+    SendOnlySerial.printDigit(0x2e);   // prints "e".
+
+`SendOnlySerial` has a few macros, usable unless `NDEBUG` is defined. Use these macros "bare", i.e. without putting `SendOnlySerial.` in front:-
 
 **printVar(integer-variable)**:  prints a line with the name of the variable and its contents, in decimal and hexadecimal.
+
+    int count = 73;
+    printVar(count);    // prints "count    73   0x49"
 
 **printFloatVar(float-variable)**: the same for floating-point type variables, in decimal only.
 
 **printReg(REGMACRO)**:  prints a line with the name and contents of the given ATmega register, in binary, hexadecimal, and decimal.
 
-Use these macros "bare", i.e. without putting `SendOnlySerial.` in front:
-
-    int count = 74;
-    printVar(count);  // prints: count    74    0x4a
+    printReg(UBRR0L);  // prints: "UBRR0L  0b1100 1111      0xcf      207"
 
 With `NDEBUG` #defined, these macros do nothing. (You may need to `#undef NDEBUG` to use them.)
 
@@ -50,11 +59,13 @@ With `NDEBUG` #defined, these macros do nothing. (You may need to `#undef NDEBUG
 
 |Function              |Remarks                                                                                 |
 |----------------------|----------------------------------------------------------------------------------------|
-|`begin(BAUDRATE)`     |default is  9600.                                                                |
+|`begin(BAUDRATE)`     |default is  9600.                                                                       |
 |`end()`               |disables the hardware and turns it off, saving a few microamps                          |
 |`flush()`             |flush waits for the last byte to be transmitted by the USART hardware.                  |
 |`print()`, `println()`|print most types of data in readable format.                                            |
-|`printP()`, `printlnP()`|print strings stored in program memory (flash). |
+|`printBinary()`       |print a byte as a fixed length string of form "0b0011 1010".                            |
+|`printDigit()`        |print the lower 4 bits of the given byte as a single hexadecimal character 0-9,a-f.     |
+|`printP()`, `printlnP()`|print strings stored in program memory (flash).                                       |
 |`write()`             |send individual characters(`write(c)`) or blocks of bytes (`write(array, sizeOfArray)`) without making them readable.|
 
 
