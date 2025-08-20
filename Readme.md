@@ -1,6 +1,15 @@
 # SendOnlySerial.h
 
-A lightweight alternative to Arduino's Serial for debugging or logging. Down to 0 bytes of RAM, *vs.* Serial's 175 bytes RAM.
+A lightweight alternative to Arduino's Serial for debugging or logging. Down to 0 bytes of RAM, *vs.* Serial's 175+ bytes RAM.
+
+Compiling the MemoryComparison example gives the following results with Arduino IDE 2.3.6 on an Uno:
+
+
+|        bytes:        |FLASH|SRAM|
+|----------------------|-----|----|
+|Serial (built in)     |3484 | 188|
+|SendOnlySerial library|2904 |  15|
+
 
 ## Compatibility
 
