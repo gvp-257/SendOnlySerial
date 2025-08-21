@@ -15,7 +15,7 @@ Compiling the MemoryComparison example gives the following results with Arduino 
 
 The Send Only Serial library is compatible with the Arduino Uno, the Nano, the Duemilanove, and the Pro Mini (both 5 volt and 3 volt) boards. It will also work with "breadboard Arduinos" using the AVR ATmega328P microcontroller and with a system clock at 16 MHz, 8 MHz, or 1 MHz.
 
-`SendOnlySerial` uses the TX0 "hardware serial" line which is also connected to the USB interface on Unos and Nanos, just like Serial.  You *could* use SendOnlySerial together with Arduino's built-in `Serial`, but I can't think why you might want to.
+`SendOnlySerial` uses the TX1 "hardware serial" line which is also connected to the USB interface on Unos and Nanos, just like Serial.  You *could* use SendOnlySerial together with Arduino's built-in `Serial`, but I can't think why you might want to.
 
 
 ## Differences from Arduino's Built-in "Serial" Object
