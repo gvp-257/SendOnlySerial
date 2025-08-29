@@ -17,22 +17,31 @@
 #include "SendOnlySerial.h"
 #define SENDER SendOnlySerial
 
+#ifndef PRINTFLASHSTRING
 #define PRINTFLASHSTRING(name, value) \
 do { \
 static const char name[] PROGMEM = value; \
 SendOnlySerial.printlnP(name); \
 } while (0)
 
+#define REPRINTFLASHSTRING(name) \
+do { \
+SendOnlySerial.printlnP(name); \
+} while (0)
+#endif
+
 #else
 
 #define SENDER Serial
 
+#ifndef PRINTFLASHSTRING
 #define PRINTFLASHSTRING(name, value) \
 do { \
 Serial.println(F(value)); \
 } while (0)
-
 #endif
+
+#endif // USE_SENDONLY.
 
 
 void setup() {

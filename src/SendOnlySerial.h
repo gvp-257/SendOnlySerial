@@ -67,6 +67,21 @@
 #error “SendOnlySerial only supports boards with AVR ATmega168A/PA/328/P/PB processor.”
 #endif
 
+// convenience macros for using strings stored in flash.
+#ifndef PRINTFLASHSTRING
+#define PRINTFLASHSTRING(name, value) \
+do { \
+  static const char name[] PROGMEM = value; \
+  SendOnlySerial.printlnP(name); \
+} while (0)
+
+// Can only name a given string once though. So:-
+#define REPRINTFLASHSTRING(name) \
+do { \
+  SendOnlySerial.printlnP(name); \
+} while (0)
+#endif
+
 
 // Possibly useful debugging macros:-
 #ifndef NDEBUG
@@ -222,6 +237,31 @@ struct AVR_USART
     // static const char infostring[] PROGMEM = "InfoInfoInfo!";
     void printP(const char*);
     void printlnP(const char*);
+
+    // convenience functions for common characters
+    void tab(void);
+    void crlf(void);
+    void space(void);
+    void slash(void);
+    void comma(void);
+    void colon(void);
+    void dash(void);
+    void minus(void);
+    void plus(void);
+    void equals(void);
+    void percent(void);
+    void star(void);
+    void dollar(void);
+    void dot(void);
+    void dquote(void);
+    void apos(void);
+    void lparen(void);
+    void rparen(void);
+    void langle(void);
+    void rangle(void);
+    void at(void);
+    void vbar(void);
+    void qmark(void);
 
 // TODO: Support Arduino's 'F()' macro (Print.h).
 // TODO: Support Arduino Strings (maybe? - memory hungry.)

@@ -246,5 +246,31 @@ void AVR_USART::printlnP(const char* string) {TXStringP(string); println();}
 //     void AVR_USART::println(const __FlashStringHelper str) {print(str); println();}
 // #endif
 
+// convenience functions for common characters
+void AVR_USART::tab() {TX('\t');}
+void AVR_USART::crlf() {TX('\r'); TX('\n');}
+void AVR_USART::space() {TX(' ');}
+void AVR_USART::slash() {TX('/');}
+void AVR_USART::comma() {TX(',');}
+void AVR_USART::colon() {TX(':');}
+void AVR_USART::dash() {TX('-');}
+void AVR_USART::minus() {TX('-');}
+void AVR_USART::plus() {TX('+');}
+void AVR_USART::equals() {TX('=');}
+void AVR_USART::percent() {TX('%');}
+void AVR_USART::star() {TX('*');}
+void AVR_USART::dollar() {TX('$');}
+void AVR_USART::dot() {TX('.');}
+void AVR_USART::dquote() {TX('"');}
+void AVR_USART::apos() {TX('\'');}
+void AVR_USART::lparen() {TX('(');}
+void AVR_USART::rparen() {TX(')');}
+void AVR_USART::langle() {TX('<');}
+void AVR_USART::rangle() {TX('>');}
+void AVR_USART::at() {TX('@');}
+void AVR_USART::vbar() {TX('|');}
+void AVR_USART::qmark() {TX('?');}
+
+
 // The object:
 struct AVR_USART SendOnlySerial;

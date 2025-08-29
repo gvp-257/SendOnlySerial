@@ -17,6 +17,29 @@ printP	KEYWORD2
 write	KEYWORD2
 writeP	KEYWORD2
 
+# shorthand for common characters
+apos	KEYWORD2
+at	KEYWORD2
+colon	KEYWORD2
+comma	KEYWORD2
+crlf	KEYWORD2
+dash	KEYWORD2
+dollar	KEYWORD2
+dot	KEYWORD2
+dquote	KEYWORD2
+equals	KEYWORD2
+langle	KEYWORD2
+lparen	KEYWORD2
+minus	KEYWORD2
+plus	KEYWORD2
+qmark	KEYWORD2
+rangle	KEYWORD2
+rparen	KEYWORD2
+star	KEYWORD2
+tab	KEYWORD2
+vbar	KEYWORD2
+
+
 # Instances (KEYWORD2)
 SendOnlySerial	KEYWORD2
 

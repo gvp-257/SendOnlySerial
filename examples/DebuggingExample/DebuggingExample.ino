@@ -43,6 +43,19 @@ SendOnlySerial.print(x, 6); SendOnlySerial.println() \
 } while (0)
 #endif
 
+#ifndef PRINTFLASHSTRING
+#define PRINTFLASHSTRING(name, value) \
+do { \
+  static const char name[] PROGMEM = value; \
+  SendOnlySerial.printlnP(name); \
+} while (0)
+
+#define REPRINTFLASHSTRING(name) \
+do { \
+ SendOnlySerial.printlnP(name); \
+ } while (0)
+#endif
+
 
 void setup() {
   SendOnlySerial.begin(9600); // explicit; begin() defaults to 9600.
@@ -54,9 +67,8 @@ void setup() {
   bool b = true;
   SendOnlySerial.println(b);
 
-  // and a string in Flash memory.
-  static const char aTestFlashString[] PROGMEM = "ATmega328P USART0 control registers, using printReg macro:";
-  SendOnlySerial.printlnP(aTestFlashString);
+   // Print a string stored in flash.
+   PRINTFLASHSTRING(usartRegistersHeading, "ATmega328P USART0 control registers, using printReg macro:");
 
   printReg(UCSR0A);        // control and status register A
   printReg(UCSR0B);        // control and status register B
@@ -72,7 +84,7 @@ void setup() {
     printVar(i);
 
     // SendOnlySerial.println(i);  // <-- Prints strange characters!
-    
+
     SendOnlySerial.println((char)(i + '0'));
     // This converts i to a printable number by adding ASCII '0' offset
     // Preventing interpretation as ASCII control characters
