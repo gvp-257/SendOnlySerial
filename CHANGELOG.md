@@ -1,6 +1,6 @@
 Send Only Serial - Changes.
 
-A low-RAM-usage transmit-onlty Arduino library for the ATmega328P.
+A low-RAM-usage transmit-only Arduino library for the ATmega328P.
 
 2025-08:  Ver 1.0.0
 
@@ -9,3 +9,5 @@ A low-RAM-usage transmit-onlty Arduino library for the ATmega328P.
 2025-08:  Ver 1.0.2 : Flash memory and RAM comparison with serial.
 
 2025-08:  Ver 1.0.3 : Fix typo TX0 -> TX1.
+
+2025-08:  Ver 1.0.4 : Add short-hand functions for printing common characters.
