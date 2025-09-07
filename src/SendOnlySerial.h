@@ -153,6 +153,11 @@ SendOnlySerial.println(); \
 #define   USART_READY      bit_is_set(UCSR0A, UDRE0)
 
 
+// Copied from WString.h: help class for Arduino's "F()" macro for printing
+// strings stored in flash.
+class __FlashStringHelper;
+
+
 struct AVR_USART
 {
     void begin(void);                 // power on, default baud rate 9600
@@ -190,7 +195,8 @@ struct AVR_USART
 
     // Strings - C null-delimited arrays only.
     void print(const char*);
-
+    // Strings stored in flash with Arduino's F() macro (see WString.h)
+    void print(const __FlashStringHelper *str);
     // Numerical types
     void print(const double);            // value, decimals=4
     void print(const double, const int); // value, decimals
@@ -217,6 +223,7 @@ struct AVR_USART
     void println(const uint8_t);
 
     void println(const char*);
+    void println(const __FlashStringHelper *str);
 
     void println(const double);
     void println(const double, const int);
@@ -263,9 +270,8 @@ struct AVR_USART
     void vbar(void);
     void qmark(void);
 
-// TODO: Support Arduino's 'F()' macro (Print.h).
-// TODO: Support Arduino Strings (maybe? - memory hungry.)
 
+    // TODO: Support Arduino Strings (maybe? - memory hungry.)
 };
 
 // The object:

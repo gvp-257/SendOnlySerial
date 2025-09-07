@@ -143,11 +143,18 @@ void AVR_USART::printDigit(uint8_t d) {d &= 0x0f; TX((d < 10)? (d + '0'): (d - 1
 // 8-bit special types
 void AVR_USART::print(const bool b)    {if (b) print("true"); else print("false");}
 void AVR_USART::print(const char c)    {TX(c);}
+
 // Print strings - C null-delimited arrays only.
 void AVR_USART::print(const char* string)
 {
     if (!string) return;
     TXString(string);
+}
+// Strings stored in flash with Arduino's F() macro: see WString.h
+void AVR_USART::print(const __FlashStringHelper *str)
+{
+    const char * s = reinterpret_cast<const char *>(str);
+    TXStringP(s);
 }
 
 
@@ -234,17 +241,8 @@ void AVR_USART::println(const unsigned long l, const int base){print(l, base); p
 void AVR_USART::printP(const char* string)   {TXStringP(string);}
 void AVR_USART::printlnP(const char* string) {TXStringP(string); println();}
 
-// TODO: Support Arduino's 'F()' macro.
-// compile error: 'str' has incomplete type
-// WString.h:37:7: note: forward declaration of 'class __FlashStringHelper'
-// #if defined(F)   // F macro in Arduino's Print.h
-//     void AVR_USART::print(const __FlashStringHelper str)
-//     {
-//         const char * s = reinterpret_cast<const char *>(str);
-//         TXStringP(s);
-//     }
-//     void AVR_USART::println(const __FlashStringHelper str) {print(str); println();}
-// #endif
+void AVR_USART::println(const __FlashStringHelper *str) {print(str); println();}
+
 
 // convenience functions for common characters
 void AVR_USART::tab() {TX('\t');}

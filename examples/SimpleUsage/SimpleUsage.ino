@@ -9,15 +9,19 @@
 
 
 void setup() {
-    SendOnlySerial.begin(250000); // begin() defaults to 9600.
+    SendOnlySerial.begin(); // begin() defaults to 9600.
 
     //print a string stored in RAM.
     char RAMstring[] = "An ordinary string, stored in RAM.";
     SendOnlySerial.println(RAMstring);
     SendOnlySerial.println();
 
-    // How to store a string in Flash memory and print it.
-    static const char aTestFlashString[] PROGMEM = "This is a string stored in Flash, printed with printlnP.";
+    // A string stored in flash memory via Arduino's F() macro:
+    SendOnlySerial.println(F("A string stored in flash via the F() macro."));
+    SendOnlySerial.println();
+
+    // A named string stored in Flash memory.
+    static const char aTestFlashString[] PROGMEM = "This is a named string stored in Flash, printed with printlnP.";
     SendOnlySerial.printlnP(aTestFlashString);
     SendOnlySerial.println();
 
